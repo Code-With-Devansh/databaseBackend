@@ -1,72 +1,64 @@
-
 const express = require("express");
 const fs = require("fs/promises");
 const app = express();
+const connectToMongo = require("./db");
 const port = process.env.PORT || 3000;
+const Order = require("./models/Order");
 app.use(express.json());
-
-app.post("/save", async (req, res) => {
-  
-  })
-app.post("/save", async (req, res) => {
-  try{
-  let D = new Date();
-  fileName = D.toLocaleTimeString().replaceAll(":", "-");
-  val = await fs.readdir("orderData");
-  let date = D.toLocaleDateString().replaceAll("/", "-");
-  if (val.indexOf(date) == -1) {
-    fs.mkdir(`orderData/${date}`);
+connectToMongo();
+app.get("/prevorders", async (req, res) => {
+  try {
+    const notes = await Order.find({});
+    res.json(notes);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal Server Error");
   }
-  await fs.appendFile(`orderData/${date}/${fileName}.txt`, JSON.stringify(req.body));
-  res.json({success: true})
-}
-catch{
-  res.status(500).json({success: false})
-}
 });
-app.get('/prevorders', async(req, res)=>{
-  let D = new Date();
-  let date = D.toLocaleDateString().replaceAll("/", "-");
-  try{
-  allFiles = await fs.readdir(`orderData/${date}`)
-  arr = []
-  for(let i = 0; i<allFiles.length; i++){
-      data = await fs.readFile(`orderData/${date}/${allFiles[i]}`, 'utf-8')
-      data = JSON.parse(data)
-      let {name, total, paid} = data
-      arr.push({name, total, paid, id: `${date}/${allFiles[i]}`})
+app.post("/save", async (req, res) => {
+  try {
+    let { name, phone, orderData, paid, total } = req.body;
+    const order = new Order({ name, phone, orderData, paid, total });
+    const savedNote = await order.save();
+    res.json(savedNote);
+  } catch (err){
+    res.status(500).json({ success: err});
   }
-  res.json({data: arr})
-    }
-    catch{
-      res.json({data:[]})
+});
+
+app.put('/edit/:id', async (req, res) => {
+    let { name, phone, orderData, paid, total } = req.body;
+    try {
+        // Create a newNote object
+        const newOrder = {};
+        if (name) { newOrder.name = name };
+        if (phone) { newOrder.phone = phone };
+        if (orderData) { newOrder.orderData = orderData };
+        if (paid) { newOrder.paid = paid };
+        if (total) { newOrder.total = total };
+
+        // Find the note to be updated and update it
+        let order = await Order.findById(req.params.id);
+        if (!order) { return res.status(404).send("Not Found") }
+        note = await Order.findByIdAndUpdate(req.params.id, { $set: newOrder }, { new: true })
+        res.json({ note });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).json({success: false});
     }
 })
-app.post('/edit', async(req, res)=>{
-  try{
-  file = await fs.readFile(`orderData/${req.body.id}`)
-  original = JSON.parse(file)
-  newdat = req.body.data
-  fs.writeFile(`orderData/${req.body.id}`, JSON.stringify({...original, ...newdat}))
-  res.json({success: true})
-  }
-  catch{
-    res.status(500).json({success: false})
-  }
-})
-app.get('/reset', async(req, res)=>{
-  try{
-  files = await fs.readdir('orderData')
-  for (let index = 0; index < files.length; index++) {
-    const element = files[index];
-    await fs.rm(`orderData/${element}`, { recursive: true, force: true })
-  }
-  res.json({success: true})
-  }
-  catch{
-    res.status(500).json({success: false})
+app.delete('/delete/:id', async (req, res) => {
+  try {
+      // Find the note to be delete and delete it
+      let order = await Order.findById(req.params.id);
+      if (!order) { return res.status(404).send("Not Found") }
+
+      order = await Order.findByIdAndDelete(req.params.id)
+      res.json({ "Success": "Note has been deleted", order: order });
+  } catch (error) {
+      console.error(error.message);
+      res.status(500).send("Internal Server Error");
   }
 })
 
-app.listen(port, () => {
-});
+app.listen(port, () => {console.log('started')});
