@@ -4,7 +4,7 @@ const app = express();
 const connectToMongo = require("./db");
 const port = process.env.PORT || 3000;
 const Order = require("./models/Order");
-import cors from "cors";
+const cors = require("cors");
 
 app.options("*", cors());
 app.use(cors());
