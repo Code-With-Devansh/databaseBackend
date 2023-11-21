@@ -4,6 +4,10 @@ const app = express();
 const connectToMongo = require("./db");
 const port = process.env.PORT || 3000;
 const Order = require("./models/Order");
+import cors from "cors";
+
+app.options("*", cors());
+app.use(cors());
 app.use(express.json());
 connectToMongo();
 app.get("/prevorders", async (req, res) => {
