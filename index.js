@@ -64,5 +64,9 @@ app.delete('/delete/:id', async (req, res) => {
       res.status(500).send("Internal Server Error");
   }
 })
-
+app.get('/fetchone/:id', async(req, res)=>{
+  order = await Order.findByIdAndDelete(req.params.id)
+  if(!order){return res.status(404).send('not found')}
+  res.json(order)
+})
 app.listen(port, () => {console.log('started')});
