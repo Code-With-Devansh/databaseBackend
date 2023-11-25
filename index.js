@@ -21,8 +21,8 @@ app.get("/prevorders", async (req, res) => {
 });
 app.post("/save", async (req, res) => {
   try {
-    let { name, phone, orderData, paid, total } = req.body;
-    const order = new Order({ name, phone, orderData, paid, total });
+    let { name, phone, orderData, paid } = req.body;
+    const order = new Order({ name, phone, orderData, paid});
     const savedNote = await order.save();
     res.json(savedNote);
   } catch (err){
@@ -31,7 +31,7 @@ app.post("/save", async (req, res) => {
 });
 
 app.put('/edit/:id', async (req, res) => {
-    let { name, phone, orderData, paid, total } = req.body;
+    let { name, phone, orderData, paid } = req.body;
     try {
         // Create a newNote object
         const newOrder = {};
@@ -39,7 +39,6 @@ app.put('/edit/:id', async (req, res) => {
         if (phone) { newOrder.phone = phone };
         if (orderData) { newOrder.orderData = orderData };
         if (paid) { newOrder.paid = paid };
-        if (total) { newOrder.total = total };
 
         // Find the note to be updated and update it
         let order = await Order.findById(req.params.id);
@@ -65,7 +64,7 @@ app.delete('/delete/:id', async (req, res) => {
   }
 })
 app.get('/fetchone/:id', async(req, res)=>{
-  order = await Order.findByIdAndDelete(req.params.id)
+  let order = await Order.findByIdAndDelete(req.params.id)
   if(!order){return res.status(404).send('not found')}
   res.json(order)
 })

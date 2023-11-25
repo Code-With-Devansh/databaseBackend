@@ -22,9 +22,6 @@ const OrderSchema = new Schema({
     paid:{
         type: Boolean
     },
-    qty:{
-        type:Number
-    }
   });
 
   module.exports = mongoose.model('order', OrderSchema);
