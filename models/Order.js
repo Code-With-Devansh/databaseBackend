@@ -22,6 +22,9 @@ const OrderSchema = new Schema({
     paid:{
         type: Boolean
     },
+    total:{
+        type:Number
+    }
   });
 
   module.exports = mongoose.model('order', OrderSchema);
